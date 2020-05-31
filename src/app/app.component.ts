@@ -5,7 +5,12 @@ import { TranslateService } from '@ngx-translate/core';
 import { Config, Nav, Platform } from 'ionic-angular';
 
 import { FirstRunPage } from '../pages';
-import { Settings } from '../providers';
+import { Settings, TouchAuth } from '../providers';
+
+const isBrowser: Function = (platform: Platform): boolean =>  platform && (platform.is('core') || platform.is('mobileweb'));
+const isCordova: Function = (platform: Platform): boolean => platform && platform.is('cordova');
+const isIos: Function = (platform: Platform): boolean => platform && platform.is('ios');
+const isAndroid: Function = (platform: Platform): boolean => platform && platform.is('android');
 
 @Component({
   template: `<ion-menu [content]="content" type="overlay">
@@ -42,17 +47,22 @@ export class MyApp {
     { title: 'Master Detail', component: 'ListMasterPage' },
     { title: 'Menu', component: 'MenuPage' },
     { title: 'Settings', component: 'SettingsPage' },
-    { title: 'Search', component: 'SearchPage' }
+    { title: 'Search', component: 'SearchPage' },
+    { title: 'Auth Page', component: 'AuthPage' }
   ]
 
-  constructor(private translate: TranslateService, platform: Platform, settings: Settings, private config: Config, private statusBar: StatusBar, private splashScreen: SplashScreen) {
-    platform.ready().then(() => {
-      // Okay, so the platform is ready and our plugins are available.
-      // Here you can do any higher level native things you might need.
-      this.statusBar.styleDefault();
-      this.splashScreen.hide();
-    });
+  constructor(private translate: TranslateService, platform: Platform, settings: Settings, private config: Config, private statusBar: StatusBar, private splashScreen: SplashScreen, private touchAuth:TouchAuth) {
+    platform.ready().then(this.onPlatformReady.bind(this, platform));
     this.initTranslate();
+  }
+
+  private onPlatformReady(platform: Platform) {
+    // Okay, so the platform is ready and our plugins are available.
+    // Here you can do any higher level native things you might need.
+    this.statusBar.styleDefault();
+    this.splashScreen.hide();
+    this.touchAuth.checkTouchAuthAvailability(isCordova(platform), isAndroid(platform), isIos(platform));    
+
   }
 
   initTranslate() {
